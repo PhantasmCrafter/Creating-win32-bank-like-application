@@ -1,0 +1,519 @@
+#if defined(UNICODE) && !defined(_UNICODE)
+    #define _UNICODE
+#elif defined(_UNICODE) && !defined(UNICODE)
+    #define UNICODE
+#endif
+#define SAVE_THE_RECORD 1
+#define EXIT_THE_PROGRAM 2
+#define CREATE_RECORD 3
+#define DEPOSIT_MONEY 4
+#define WITHDRAW_MONEY 5
+#define FIND_RECORD 6
+
+#define NAME 7
+#define CASTE 8
+#define BIRTHDATE 9
+#define MONEY 10
+#define TRANSACTION 12
+
+#define FIND_UNDER_NO 30
+#define FIND_UNDER_NAME 31
+#define FIND_UNDER_CASTE 32
+#define FIND_UNDER_AGE 33
+
+
+#define ABOUT_US 40
+#define HELP 41
+
+
+
+
+#include<stdlib.h>
+using namespace std;
+#include <tchar.h>
+#include <windows.h>
+#include<fstream>
+#include<string>
+#include<time.h>
+#include<cstdlib>
+
+int check_status_exit;
+            char about[100] = "Hey\nWe are emerging developer\nHA HA HA\nStupid Peoples\n WOW";
+            char help[100] = "Hey\nThis is stupid Virus\nHA HA HA\nYour Data is hacked\nI LOVE DATA\n WOW";
+
+HWND hCreate,hDeposit,hFind,hExit,hWithdraw;
+HWND hCustomer, hName,hCaste,hBirthdate,hMoney,hTransaction;
+HWND hCustomers, hNames,hCastes,hBirthdates,hMoneys,hTransactions;
+HWND hSave , hLogo;
+HFONT hFont;
+HMENU hmCreate,hmDeposit,hmFind,hmExit,hmWithdraw;
+HMENU hmSave;
+HBITMAP hLogoImage;
+
+HMENU hMenu;
+//DESTROYING the window
+void destroy_everything();
+
+//
+
+//Finding on the basis of ......
+HWND hUnderNo,hUnderName,hUnderCaste,hUnderAge;
+//End
+
+//Depositing and withdrawing
+void depositing_money(HWND);
+void withdrawing_money(HWND);
+//
+
+//reading and writing
+void read_from_file();
+void create_customer_record(HWND);
+void finding_record(HWND);
+void finding_under_no(HWND);
+void finding_under_name(HWND);
+void finding_under_caste(HWND);
+void finding_under_age(HWND);
+//End
+
+
+void buttons(HWND);
+void customer_value(HWND);
+void customer_datatype(HWND);
+void loadImages();
+void create_menus(HWND);
+/*  Declare Windows procedure  */
+LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
+
+/*  Make the class name into a global variable  */
+TCHAR szClassName[ ] = _T("CodeBlocksWindowsApp");
+
+int WINAPI WinMain (HINSTANCE hThisInstance,
+                     HINSTANCE hPrevInstance,
+                     LPSTR lpszArgument,
+                     int nCmdShow)
+{
+    HWND hwnd;               /* This is the handle for our window */
+    MSG messages;            /* Here messages to the application are saved */
+    WNDCLASSEX wincl;        /* Data structure for the windowclass */
+
+    /* The Window structure */
+    wincl.hInstance = hThisInstance;
+    wincl.lpszClassName = szClassName;
+    wincl.lpfnWndProc = WindowProcedure;      /* This function is called by windows */
+    wincl.style = CS_DBLCLKS;                 /* Catch double-clicks */
+    wincl.cbSize = sizeof (WNDCLASSEX);
+
+    /* Use default icon and mouse-pointer */
+    wincl.hIcon = LoadIcon (NULL, IDI_APPLICATION);
+    wincl.hIconSm = LoadIcon (NULL, IDI_APPLICATION);
+    wincl.hCursor = LoadCursor (NULL, IDC_ARROW);
+    wincl.lpszMenuName = NULL;                 /* No menu */
+    wincl.cbClsExtra = 0;                      /* No extra bytes after the window class */
+    wincl.cbWndExtra = 0;                      /* structure or the window instance */
+    /* Use Windows's default colour as the background of the window */
+    wincl.hbrBackground = (HBRUSH) COLOR_BACKGROUND;
+
+    /* Register the window class, and if it fails quit the program */
+    if (!RegisterClassEx (&wincl))
+        return 0;
+
+    /* The class is registered, let's create the program*/
+    hwnd = CreateWindowEx (
+           0,                   /* Extended possibilites for variation */
+           szClassName,         /* Classname */
+           _T("Simple Sahakari Application"),       /* Title Text */
+           WS_OVERLAPPEDWINDOW, /* default window */
+           CW_USEDEFAULT,       /* Windows decides the position */
+           CW_USEDEFAULT,       /* where the window ends up on the screen */
+           1200,                 /* The programs width */
+           700,                 /* and height in pixels */
+           HWND_DESKTOP,        /* The window is a child-window to desktop */
+           NULL,                /* No menu */
+           hThisInstance,       /* Program Instance handler */
+           NULL                 /* No Window Creation data */
+           );
+
+    /* Make the window visible on the screen */
+    ShowWindow (hwnd, nCmdShow);
+
+    /* Run the message loop. It will run until GetMessage() returns 0 */
+    while (GetMessage (&messages, NULL, 0, 0))
+    {
+        /* Translate virtual-key messages into character messages */
+        TranslateMessage(&messages);
+        /* Send message to WindowProcedure */
+        DispatchMessage(&messages);
+    }
+
+    /* The program return-value is 0 - The value that PostQuitMessage() gave */
+    return messages.wParam;
+}
+
+
+/*  This function is called by the Windows function DispatchMessage()  */
+
+LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)                  /* handle the messages */
+    {
+               case WM_CLOSE:
+                   MessageBeep(MB_NOFOCUS);
+    if (MessageBox(hwnd, "Are You Sure To Exit", "EXIT", MB_OKCANCEL) == IDOK)
+    {
+        DestroyWindow(hwnd);
+    }
+    break;
+    case WM_COMMAND:
+        {
+        switch(wParam){
+        case CREATE_RECORD:
+            destroy_everything();
+            customer_value(hwnd);
+            customer_datatype(hwnd);
+            break;
+        case DEPOSIT_MONEY:
+            read_from_file();
+            break;
+        case ABOUT_US:
+            MessageBox(hwnd,about,"About the Developer",MB_OK);
+            break;
+             case HELP:
+            MessageBox(hwnd,help,"About the Developer",MB_OK);
+            break;
+        case EXIT_THE_PROGRAM:
+            MessageBeep(MB_NOFOCUS);
+           check_status_exit =  MessageBox(hwnd,"Are You Sure To Exit","EXIT",MB_OKCANCEL | MB_ICONQUESTION);
+            switch(check_status_exit){
+            case IDOK:
+                DestroyWindow(hwnd);
+            }
+
+            break;
+            case FIND_RECORD:
+                finding_record(hwnd);
+
+
+                break;
+
+            case SAVE_THE_RECORD:
+                char name_of_customer[20],caste_of_customer[20],birthdate[12],money_of_customer[15],last_transaction[12];
+
+                GetWindowText(hName,name_of_customer,20);
+                GetWindowText(hCaste,caste_of_customer,20);
+                GetWindowText(hBirthdate,birthdate,12);
+                GetWindowText(hMoney,money_of_customer,15);
+                GetWindowText(hTransaction,last_transaction,12);
+                if((strcmp(name_of_customer,"")==0) || (strcmp(caste_of_customer,"")==0) ||(strcmp(birthdate,"")==0) || (strcmp(last_transaction,"")==0) ){
+                   MessageBeep(MB_ICONERROR);
+                   MessageBox(hwnd,"Please fill all the data","ERROR while entering",MB_OK);
+                }
+                else{
+                        create_customer_record(hwnd);
+                    MessageBox(hwnd,"Customer Record has been successfully created","Successfully Created",MB_OK | MB_ICONINFORMATION);
+
+                }
+
+                break;
+
+                //FINDING DATA
+            case FIND_UNDER_NO:
+                finding_under_no(hwnd);
+            break;
+            case FIND_UNDER_NAME:
+                finding_under_no(hwnd);
+            break;
+            case FIND_UNDER_CASTE:
+                finding_under_no(hwnd);
+            break;
+            case FIND_UNDER_AGE:
+                finding_under_no(hwnd);
+            break;
+        }
+        }
+break;
+     case WM_CREATE:
+         create_menus(hwnd);
+         loadImages();
+            buttons(hwnd);
+            customer_value(hwnd);
+            customer_datatype(hwnd);
+
+
+            break;
+        case WM_DESTROY:
+            PostQuitMessage (0);       /* send a WM_QUIT to the message queue */
+            break;
+        default:                      /* for messages that we don't deal with */
+            return DefWindowProc (hwnd, message, wParam, lParam);
+    }
+
+    return 0;
+}
+void create_menus(HWND  hwnd){
+
+HMENU hsFile;
+ hMenu = CreateMenu();
+ hsFile = CreateMenu();
+ AppendMenu(hMenu,MF_POPUP,(UINT_PTR)hsFile,"File");
+ AppendMenu(hMenu,MF_STRING,ABOUT_US,"About us");
+ AppendMenu(hMenu,MF_STRING,HELP,"Help");
+
+
+ AppendMenu(hsFile,MF_STRING,ABOUT_US,"Open");
+ AppendMenu(hsFile,MF_SEPARATOR,0 ,NULL);
+ AppendMenu(hsFile,MF_STRING,HELP,"Help");
+SetMenu(hwnd,hsFile);
+ SetMenu(hwnd,hMenu);
+
+}
+
+void buttons(HWND hwnd){
+hCreate = CreateWindowW(L"BUTTON",L"Create New Record",WS_CHILD | WS_VISIBLE | SS_CENTER | WS_BORDER,
+                        40,110,200,40,hwnd,
+                        (HMENU)CREATE_RECORD,NULL,NULL
+                        );
+hDeposit = CreateWindowW(L"BUTTON",L"Deposit Money",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        40,160,200,40,hwnd,
+                        (HMENU)DEPOSIT_MONEY,NULL,NULL
+                        );
+hWithdraw = CreateWindowW(L"BUTTON",L"Withdraw Money",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        40,210,200,40,hwnd,
+                        (HMENU)WITHDRAW_MONEY,NULL,NULL
+                        );
+ hFind = CreateWindowW(L"BUTTON",L"Find Customer",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        40,260,200,40,hwnd,
+                        (HMENU)FIND_RECORD,NULL,NULL
+                        );
+    hExit = CreateWindowW(L"BUTTON",L"Exit",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        40,310,200,40,hwnd,
+                        (HMENU)EXIT_THE_PROGRAM,NULL,NULL
+                        );
+
+    hFont=CreateFont(20, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, "Arial");
+
+    SendMessage (hCreate, WM_SETFONT, WPARAM (hFont), TRUE);
+    SendMessage (hWithdraw, WM_SETFONT, WPARAM (hFont), TRUE);
+    SendMessage (hDeposit, WM_SETFONT, WPARAM (hFont), TRUE);
+    SendMessage (hDeposit, WM_SETFONT, WPARAM (hFont), TRUE);
+    SendMessage (hFind, WM_SETFONT, WPARAM (hFont), TRUE);
+    SendMessage (hExit, WM_SETFONT, WPARAM (hFont), TRUE);
+
+
+}
+void customer_value(HWND hwnd){
+    hCustomer = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | WS_BORDER,
+                        750,150,200,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+
+
+hName = CreateWindow("EDIT",NULL,WS_CHILD | WS_VISIBLE |   WS_BORDER ,
+                        750,200,200,40,hwnd,
+                        (HMENU)NAME,NULL,NULL
+                        );
+hCaste = CreateWindowW(L"Edit",L"",WS_CHILD | WS_VISIBLE | WS_BORDER ,
+                        750,250,200,40,hwnd,
+                        (HMENU)CASTE,NULL,NULL
+                        );
+ hBirthdate = CreateWindowW(L"Edit",L"",WS_CHILD | WS_VISIBLE | WS_BORDER ,
+                        750,300,200,40,hwnd,
+                        (HMENU)BIRTHDATE,NULL,NULL
+                        );
+hTransaction = CreateWindowW(L"edit",L"",WS_CHILD | WS_VISIBLE | WS_BORDER ,
+                        750,350,200,40,hwnd,
+                        (HMENU)TRANSACTION,NULL,NULL
+                        );
+}
+void customer_datatype(HWND hwnd){
+
+hCustomers = CreateWindowW(L"STATIC",L"Customer No.:",WS_CHILD | WS_VISIBLE | SS_SIMPLE,
+                        600,165,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+hNames = CreateWindowW(L"STATIC",L"Name:",WS_CHILD | WS_VISIBLE | SS_SIMPLE,
+                        600,215,50,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+hCastes = CreateWindowW(L"STATIC",L"Caste:",WS_CHILD | WS_VISIBLE | SS_SIMPLE,
+                        600,265,50,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+ hBirthdates = CreateWindowW(L"STATIC",L"Birthdate:",WS_CHILD | WS_VISIBLE | SS_SIMPLE,
+                        600,315,100,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+hTransactions = CreateWindowW(L"STATIC",L"Last Transaction:",WS_CHILD | WS_VISIBLE | SS_SIMPLE | SS_REALSIZECONTROL,
+                        600,365,150,40,hwnd,NULL
+                        ,NULL,NULL
+                        );
+
+ hSave = CreateWindowW(L"BUTTON",L"Save",WS_CHILD | WS_VISIBLE | SS_CENTER | WS_BORDER | SS_WORDELLIPSIS,
+                        500,500,300,40,hwnd,
+                        (HMENU)SAVE_THE_RECORD,NULL,NULL
+                        );
+
+    hLogo = CreateWindowW(L"STATIC",NULL,WS_CHILD | WS_VISIBLE | SS_BITMAP | WS_BORDER,
+                        1,1,1200,80,hwnd,
+                        NULL,NULL,NULL
+                        );
+
+    SendMessage(hLogo,STM_SETIMAGE,(WPARAM)IMAGE_BITMAP,(LPARAM)hLogoImage);
+                        //SendMessage(To this point,staticmessage_--,image type , the loaded image);
+
+
+
+};
+void loadImages(){
+hLogoImage = (HBITMAP)LoadImageW(NULL,L"all.bmp",IMAGE_BITMAP,1200,80,LR_LOADFROMFILE);
+
+}
+void read_from_file(){
+    char customer_no[5],name[20],caste[20],birthdate[12],money[15],last_transaction[10];
+    string scustomer_no,sname,scaste,sbirthdate,smoney,slast_transaction;
+fstream newfile;
+newfile.open("customer.txt");
+while(!newfile.eof()){
+        newfile >> scustomer_no >> sname >> scaste >>sbirthdate >> smoney >>slast_transaction;
+        strcpy(customer_no,scustomer_no.c_str());
+strcpy(name,sname.c_str());
+strcpy(caste,scaste.c_str());
+strcpy(birthdate,sbirthdate.c_str());
+strcpy(money,smoney.c_str());
+strcpy(last_transaction,slast_transaction.c_str());
+SetWindowText(hCustomer,customer_no);
+SetWindowText(hName,name);
+SetWindowText(hCaste,caste);
+SetWindowText(hBirthdate,birthdate);
+SetWindowText(hMoney,money);
+SetWindowText(hTransaction,last_transaction);
+}
+newfile.close();
+}
+
+void create_customer_record(HWND hwnd){
+
+
+ char rcustomer_no[5],rname[20],rcaste[20],rbirthdate[12],rmoney[15],rlast_transaction[10];
+    string rscustomer_no,rsname,rscaste,rsbirthdate,rsmoney,rslast_transaction;
+fstream newfile;
+newfile.open("customer.txt");
+while(!newfile.eof()){
+        newfile >> rscustomer_no >> rsname >> rscaste >>rsbirthdate >> rsmoney >>rslast_transaction;
+        strcpy(rcustomer_no,rscustomer_no.c_str());
+strcpy(rname,rsname.c_str());
+strcpy(rcaste,rscaste.c_str());
+strcpy(rbirthdate,rsbirthdate.c_str());
+strcpy(rmoney,rsmoney.c_str());
+strcpy(rlast_transaction,rslast_transaction.c_str());
+}
+newfile.close();
+
+SetWindowText(hCustomer,rcustomer_no);
+
+
+
+
+
+
+
+
+
+ char customer_no[5],name[20],caste[20],birthdate[12],money[15],last_transaction[10];
+
+GetWindowText(hName,customer_no,5);
+GetWindowText(hName,name,20);
+GetWindowText(hCaste,caste,20);
+GetWindowText(hBirthdate,birthdate,12);
+GetWindowText(hMoney,money,15);
+GetWindowText(hTransaction,last_transaction,12);
+
+
+string scustomer_no(customer_no);
+string sname(name);
+string scaste(caste);
+string sbirthdate(birthdate);
+string smoney(money);
+string slast_transaction(last_transaction);
+
+
+fstream savefile;
+savefile.open("customer.txt" ,ios::app);
+if(savefile.is_open()){
+savefile <<endl<< customer_no <<" " << sname <<" " << scaste <<" " << sbirthdate <<" " << smoney  <<" "<< slast_transaction;
+}
+else{
+    MessageBox(hwnd,"ERROR: There is problem while creating Data","Contact Developer",MB_OKCANCEL);
+}
+savefile.close();
+}
+void finding_record(HWND hwnd){
+destroy_everything();
+
+CreateWindowW(L"button", L"Customer No",
+                WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+                600,225,120,40,hwnd, (HMENU)FIND_UNDER_NO, NULL, NULL);
+CreateWindowW(L"button", L"Name",
+                WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+                600,265,120,40,hwnd,(HMENU)FIND_UNDER_NAME, NULL, NULL);
+CreateWindowW(L"button", L"Caste",
+                WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+                600,305,120,40,hwnd,(HMENU)FIND_UNDER_CASTE, NULL, NULL);
+CreateWindowW(L"button", L"Age",
+                WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX ,
+                600,345,120,40,hwnd,(HMENU)FIND_UNDER_AGE, NULL, NULL);
+}
+void finding_under_no(HWND hwnd){
+  CreateWindowW(L"button", L"Enter customer no of customer",
+                WS_CHILD | WS_VISIBLE,
+                400,225,220,40,hwnd, NULL, NULL, NULL);
+hUnderNo = CreateWindowW(L"EDIT", L"",
+                WS_CHILD | WS_VISIBLE,
+                630,225,120,40,hwnd, NULL, NULL, NULL);
+
+}
+void finding_under_name(HWND hwnd){
+  CreateWindowW(L"button", L"Enter name of customer",
+                WS_CHILD | WS_VISIBLE,
+                400,225,220,40,hwnd, NULL, NULL, NULL);
+hUnderName = CreateWindowW(L"EDIT", L"",
+                WS_CHILD | WS_VISIBLE,
+                630,225,120,40,hwnd, NULL, NULL, NULL);
+}
+void finding_under_caste(HWND hwnd){
+  CreateWindowW(L"button", L"Enter caste of customer",
+                WS_CHILD | WS_VISIBLE,
+                400,225,220,40,hwnd, NULL, NULL, NULL);
+hUnderCaste = CreateWindowW(L"EDIT", L"",
+                WS_CHILD | WS_VISIBLE,
+                630,225,120,40,hwnd, NULL, NULL, NULL);
+}
+void finding_under_age(HWND hwnd){
+  CreateWindowW(L"button", L"Enter age of customer",
+                WS_CHILD | WS_VISIBLE | SS_LEFT,
+                400,225,220,40,hwnd, NULL, NULL, NULL);
+hUnderAge = CreateWindowW(L"EDIT", L"",
+                WS_CHILD | WS_VISIBLE,
+                630,225,120,40,hwnd, NULL, NULL, NULL);
+}
+
+void depositing_money(HWND hwnd){
+
+}
+void withdrawing_money(HWND hwnd){}
+
+void destroy_everything(){
+DestroyWindow(hName);
+DestroyWindow(hCaste);
+DestroyWindow(hCustomer);
+DestroyWindow(hTransaction);
+DestroyWindow(hBirthdate);
+DestroyWindow(hMoney);
+DestroyWindow(hNames);
+DestroyWindow(hCastes);
+DestroyWindow(hCustomers);
+DestroyWindow(hTransactions);
+DestroyWindow(hBirthdates);
+DestroyWindow(hMoneys);
+
+}
+
