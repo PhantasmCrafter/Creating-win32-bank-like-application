@@ -1,3 +1,8 @@
+//one problem is finding last customer
+
+
+
+
 #if defined(UNICODE) && !defined(_UNICODE)
     #define _UNICODE
 #elif defined(_UNICODE) && !defined(UNICODE)
@@ -21,12 +26,18 @@
 #define FIND_UNDER_CASTE 32
 #define FIND_UNDER_AGE 33
 
+#define GO 35
+#define GO_NO 36
+#define GO_NAME 37
+#define GO_CASTE 38
+#define GO_AGE 39
+
 
 #define ABOUT_US 40
 #define HELP 41
 
-
-
+char cno[20]="0";
+int no =0;
 
 #include<stdlib.h>
 using namespace std;
@@ -51,20 +62,29 @@ HMENU hmSave;
 HBITMAP hLogoImage;
 
 HMENU hMenu;
+
+void go_deposit(HWND);
 //DESTROYING the window
 void destroy_everything();
+void destroy_checkbox();
 
 //
+HWND hUnderNameName,hUnderNameCaste,hUnderNameNo,hUnderNameBirthdate,hUnderNameMoney,hUnderNameLast;
 
 //Finding on the basis of ......
 HWND hUnderNo,hUnderName,hUnderCaste,hUnderAge;
+HWND hcheckboxcustomer,hcheckboxname,hcheckboxcaste,hcheckboxage;
 //End
 
 //Depositing and withdrawing
 void depositing_money(HWND);
+HWND hNoTakers,hNoTaker,hGO;
 void withdrawing_money(HWND);
 //
-
+void go_no(HWND);
+void go_name(HWND);
+void go_caste(HWND);
+void go_age(HWND);
 //reading and writing
 void read_from_file();
 void create_customer_record(HWND);
@@ -171,9 +191,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             customer_value(hwnd);
             customer_datatype(hwnd);
             break;
-        case DEPOSIT_MONEY:
-            read_from_file();
-            break;
+
         case ABOUT_US:
             MessageBox(hwnd,about,"About the Developer",MB_OK);
             break;
@@ -214,20 +232,43 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 }
 
                 break;
+            case GO:
+                go_deposit(hwnd);
 
+                break;
+                //Deposit and withdraw
+            case DEPOSIT_MONEY:
+                depositing_money(hwnd);
+                break;
                 //FINDING DATA
             case FIND_UNDER_NO:
+                destroy_checkbox();
                 finding_under_no(hwnd);
             break;
+            case GO_NO:
+                go_no(hwnd);
+                break;
             case FIND_UNDER_NAME:
-                finding_under_no(hwnd);
+                destroy_checkbox();
+                finding_under_name(hwnd);
             break;
+            case GO_NAME:
+                go_name(hwnd);
+                break;
             case FIND_UNDER_CASTE:
-                finding_under_no(hwnd);
+                destroy_checkbox();
+                finding_under_caste(hwnd);
             break;
+            case GO_CASTE:
+                go_caste(hwnd);
+                break;
             case FIND_UNDER_AGE:
-                finding_under_no(hwnd);
+                destroy_checkbox();
+                finding_under_age(hwnd);
             break;
+            case GO_AGE:
+                go_age(hwnd);
+                break;
         }
         }
 break;
@@ -235,8 +276,7 @@ break;
          create_menus(hwnd);
          loadImages();
             buttons(hwnd);
-            customer_value(hwnd);
-            customer_datatype(hwnd);
+
 
 
             break;
@@ -297,6 +337,13 @@ hWithdraw = CreateWindowW(L"BUTTON",L"Withdraw Money",WS_CHILD | WS_VISIBLE | SS
     SendMessage (hDeposit, WM_SETFONT, WPARAM (hFont), TRUE);
     SendMessage (hFind, WM_SETFONT, WPARAM (hFont), TRUE);
     SendMessage (hExit, WM_SETFONT, WPARAM (hFont), TRUE);
+        hLogo = CreateWindowW(L"STATIC",NULL,WS_CHILD | WS_VISIBLE | SS_BITMAP | WS_BORDER,
+                        1,1,1200,80,hwnd,
+                        NULL,NULL,NULL
+                        );
+
+    SendMessage(hLogo,STM_SETIMAGE,(WPARAM)IMAGE_BITMAP,(LPARAM)hLogoImage);
+                        //SendMessage(To this point,staticmessage_--,image type , the loaded image);
 
 
 }
@@ -315,12 +362,16 @@ hCaste = CreateWindowW(L"Edit",L"",WS_CHILD | WS_VISIBLE | WS_BORDER ,
                         750,250,200,40,hwnd,
                         (HMENU)CASTE,NULL,NULL
                         );
- hBirthdate = CreateWindowW(L"Edit",L"",WS_CHILD | WS_VISIBLE | WS_BORDER ,
+hMoney = CreateWindowW(L"Edit",L"",WS_CHILD | WS_VISIBLE | WS_BORDER ,
                         750,300,200,40,hwnd,
+                        (HMENU)MONEY,NULL,NULL
+                        );
+ hBirthdate = CreateWindowW(L"Edit",L"",WS_CHILD | WS_VISIBLE | WS_BORDER ,
+                        750,350,200,40,hwnd,
                         (HMENU)BIRTHDATE,NULL,NULL
                         );
 hTransaction = CreateWindowW(L"edit",L"",WS_CHILD | WS_VISIBLE | WS_BORDER ,
-                        750,350,200,40,hwnd,
+                        750,400,200,40,hwnd,
                         (HMENU)TRANSACTION,NULL,NULL
                         );
 }
@@ -338,12 +389,16 @@ hCastes = CreateWindowW(L"STATIC",L"Caste:",WS_CHILD | WS_VISIBLE | SS_SIMPLE,
                         600,265,50,40,hwnd,
                         NULL,NULL,NULL
                         );
+hMoneys = CreateWindowW(L"STATIC",L"Money:",WS_CHILD | WS_VISIBLE | SS_SIMPLE,
+                        600,315,50,40,hwnd,
+                        NULL,NULL,NULL
+                        );
  hBirthdates = CreateWindowW(L"STATIC",L"Birthdate:",WS_CHILD | WS_VISIBLE | SS_SIMPLE,
-                        600,315,100,40,hwnd,
+                        600,365,100,40,hwnd,
                         NULL,NULL,NULL
                         );
 hTransactions = CreateWindowW(L"STATIC",L"Last Transaction:",WS_CHILD | WS_VISIBLE | SS_SIMPLE | SS_REALSIZECONTROL,
-                        600,365,150,40,hwnd,NULL
+                        600,415,150,40,hwnd,NULL
                         ,NULL,NULL
                         );
 
@@ -352,13 +407,7 @@ hTransactions = CreateWindowW(L"STATIC",L"Last Transaction:",WS_CHILD | WS_VISIB
                         (HMENU)SAVE_THE_RECORD,NULL,NULL
                         );
 
-    hLogo = CreateWindowW(L"STATIC",NULL,WS_CHILD | WS_VISIBLE | SS_BITMAP | WS_BORDER,
-                        1,1,1200,80,hwnd,
-                        NULL,NULL,NULL
-                        );
 
-    SendMessage(hLogo,STM_SETIMAGE,(WPARAM)IMAGE_BITMAP,(LPARAM)hLogoImage);
-                        //SendMessage(To this point,staticmessage_--,image type , the loaded image);
 
 
 
@@ -408,19 +457,11 @@ strcpy(rlast_transaction,rslast_transaction.c_str());
 }
 newfile.close();
 
-SetWindowText(hCustomer,rcustomer_no);
+
+ char customer_no[5] = "0",name[20]= "0",caste[20]= "0",birthdate[12]= "0",money[15]= "0",last_transaction[10]= "0";
 
 
-
-
-
-
-
-
-
- char customer_no[5],name[20],caste[20],birthdate[12],money[15],last_transaction[10];
-
-GetWindowText(hName,customer_no,5);
+GetWindowText(hCustomer,customer_no,5);
 GetWindowText(hName,name,20);
 GetWindowText(hCaste,caste,20);
 GetWindowText(hBirthdate,birthdate,12);
@@ -439,36 +480,109 @@ string slast_transaction(last_transaction);
 fstream savefile;
 savefile.open("customer.txt" ,ios::app);
 if(savefile.is_open()){
-savefile <<endl<< customer_no <<" " << sname <<" " << scaste <<" " << sbirthdate <<" " << smoney  <<" "<< slast_transaction;
+savefile <<endl<<scustomer_no <<" " << sname <<" " << scaste <<" " << sbirthdate <<" " << smoney  <<" "<< slast_transaction;
 }
 else{
     MessageBox(hwnd,"ERROR: There is problem while creating Data","Contact Developer",MB_OKCANCEL);
 }
 savefile.close();
 }
+
+void depositing_money(HWND hwnd){
+    destroy_everything();
+
+hNoTakers = CreateWindowW(L"static",L"Enter the no of customer: ",WS_VISIBLE  | WS_CHILD | WS_BORDER,
+                         400,225,250,40,
+                         hwnd,NULL,NULL,NULL);
+hNoTaker = CreateWindowW(L"edit",L"0",WS_VISIBLE  | WS_CHILD | WS_BORDER,
+                         630,225,120,40,
+                         hwnd,NULL,NULL,NULL);
+                         SendMessage(hNoTakers,WM_SETFONT,(WPARAM)hFont,TRUE);
+CreateWindowW(L"button",L"GO",WS_VISIBLE  | WS_CHILD | WS_BORDER,
+                         760,225,50,40,
+                         hwnd,(HMENU)GO,NULL,NULL);
+
+
+}
+void go_deposit(HWND hwnd){
+    bool found = false;
+    fstream newfile;
+char rscustomer_no[5],rsname[20],rscaste[20],rsbirthdate[12],rsmoney[15],rslast_transaction[10];
+newfile.open("customer.txt");
+     while(!newfile.eof()){
+                         newfile >> rscustomer_no >> rsname >> rscaste >>rsbirthdate >> rsmoney >>rslast_transaction;
+
+
+GetWindowText(hNoTaker,cno,5);
+
+
+
+
+if(strcmp(cno,rscustomer_no)==0)
+{
+    char message[200];
+strcpy(message,cno);
+strcat(message,"The customer number ");
+strcat(message,cno);
+strcat(message," is successfully found\nNAME: ");
+strcat(message,rsname);
+strcat(message,"\nCaste: ");
+strcat(message,rscaste);
+strcat(message,"\nBirthdate: ");
+strcat(message,rsbirthdate);
+strcat(message,"\nMoney: ");
+strcat(message,rsmoney);
+strcat(message,"\nLast Transaction: ");
+strcat(message,rslast_transaction);
+MessageBox(hwnd,message,"Found",MB_OK);
+
+    found = false;
+
+}
+else{
+    found = true;
+}
+}
+if(found == false){
+   MessageBox(hwnd,"Record not found","Found",MB_ABORTRETRYIGNORE);
+}
+
+}
+
+void withdrawing_money(HWND hwnd){}
+
+
+
 void finding_record(HWND hwnd){
 destroy_everything();
 
-CreateWindowW(L"button", L"Customer No",
+hcheckboxcustomer = CreateWindowW(L"button", L"Customer No",
                 WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
                 600,225,120,40,hwnd, (HMENU)FIND_UNDER_NO, NULL, NULL);
-CreateWindowW(L"button", L"Name",
+hcheckboxname = CreateWindowW(L"button", L"Name",
                 WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
                 600,265,120,40,hwnd,(HMENU)FIND_UNDER_NAME, NULL, NULL);
-CreateWindowW(L"button", L"Caste",
+hcheckboxcaste = CreateWindowW(L"button", L"Caste",
                 WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
                 600,305,120,40,hwnd,(HMENU)FIND_UNDER_CASTE, NULL, NULL);
-CreateWindowW(L"button", L"Age",
+hcheckboxage = CreateWindowW(L"button", L"Age",
                 WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX ,
                 600,345,120,40,hwnd,(HMENU)FIND_UNDER_AGE, NULL, NULL);
 }
+
+
 void finding_under_no(HWND hwnd){
-  CreateWindowW(L"button", L"Enter customer no of customer",
+CreateWindowW(L"button", L"Enter customer no of customer",
                 WS_CHILD | WS_VISIBLE,
                 400,225,220,40,hwnd, NULL, NULL, NULL);
+
 hUnderNo = CreateWindowW(L"EDIT", L"",
                 WS_CHILD | WS_VISIBLE,
                 630,225,120,40,hwnd, NULL, NULL, NULL);
+CreateWindowW(L"button",L"GO",WS_VISIBLE  | WS_CHILD | WS_BORDER,
+                         760,225,50,40,
+                         hwnd,(HMENU)GO_NO,NULL,NULL);
+
 
 }
 void finding_under_name(HWND hwnd){
@@ -478,6 +592,9 @@ void finding_under_name(HWND hwnd){
 hUnderName = CreateWindowW(L"EDIT", L"",
                 WS_CHILD | WS_VISIBLE,
                 630,225,120,40,hwnd, NULL, NULL, NULL);
+CreateWindowW(L"button",L"GO",WS_VISIBLE  | WS_CHILD | WS_BORDER,
+                         760,225,50,40,
+                         hwnd,(HMENU)GO_NAME,NULL,NULL);
 }
 void finding_under_caste(HWND hwnd){
   CreateWindowW(L"button", L"Enter caste of customer",
@@ -486,6 +603,9 @@ void finding_under_caste(HWND hwnd){
 hUnderCaste = CreateWindowW(L"EDIT", L"",
                 WS_CHILD | WS_VISIBLE,
                 630,225,120,40,hwnd, NULL, NULL, NULL);
+CreateWindowW(L"button",L"GO",WS_VISIBLE  | WS_CHILD | WS_BORDER,
+                         760,225,50,40,
+                         hwnd,(HMENU)GO_CASTE,NULL,NULL);
 }
 void finding_under_age(HWND hwnd){
   CreateWindowW(L"button", L"Enter age of customer",
@@ -494,14 +614,339 @@ void finding_under_age(HWND hwnd){
 hUnderAge = CreateWindowW(L"EDIT", L"",
                 WS_CHILD | WS_VISIBLE,
                 630,225,120,40,hwnd, NULL, NULL, NULL);
+CreateWindowW(L"button",L"GO",WS_VISIBLE  | WS_CHILD | WS_BORDER,
+                         760,225,50,40,
+                         hwnd,(HMENU)GO_AGE,NULL,NULL);
 }
 
-void depositing_money(HWND hwnd){
+
+void go_no(HWND hwnd){
+      bool found = false;
+    fstream newfile;
+char rscustomer_no[5],rsname[20],rscaste[20],rsbirthdate[12],rsmoney[15],rslast_transaction[10];
+newfile.open("customer.txt");
+     while(!newfile.eof()){
+                         newfile >> rscustomer_no >> rsname >> rscaste >>rsbirthdate >> rsmoney >>rslast_transaction;
+
+
+GetWindowText(hUnderNo,cno,5);
+if(strcmp(cno,rscustomer_no)==0)
+{
+    char message[200];
+strcpy(message,cno);
+strcat(message,"The customer number ");
+strcat(message,cno);
+strcat(message," is successfully found\nNAME: ");
+strcat(message,rsname);
+strcat(message,"\nCaste: ");
+strcat(message,rscaste);
+strcat(message,"\nBirthdate: ");
+strcat(message,rsbirthdate);
+strcat(message,"\nMoney: ");
+strcat(message,rsmoney);
+strcat(message,"\nLast Transaction: ");
+strcat(message,rslast_transaction);
+MessageBox(hwnd,message,"Found",MB_OK);
+
+    found = false;
 
 }
-void withdrawing_money(HWND hwnd){}
+else{
+    found = true;
+}
+}
+if(found == false){
+   MessageBox(hwnd,"Record not found","Found",MB_ABORTRETRYIGNORE);
+}
+
+}
+void go_name(HWND hwnd){
+bool found = false;
+int x = 340,y = 150;
+    fstream newfile;
+char rscustomer_no[5],rsname[20],rscaste[20],rsbirthdate[12],rsmoney[15],rslast_transaction[10];
+newfile.open("customer.txt");
+     while(!newfile.eof()){
+                         newfile >> rscustomer_no >> rsname >> rscaste >>rsbirthdate >> rsmoney >>rslast_transaction;
+
+GetWindowText(hUnderName,cno,20);
+ CreateWindowW(L"STATIC",L"Customer No",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        340,150,150,40,hwnd,
+                        NULL,NULL,NULL );
+ CreateWindowW(L"STATIC",L"Name",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        490,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+   CreateWindowW(L"STATIC",L"Caste",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        640,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+  CreateWindowW(L"STATIC",L"Birthdate",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        790,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+   CreateWindowW(L"STATIC",L"Money",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        940,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+  CreateWindowW(L"STATIC",L"Last Transaction",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        1090,150,150,40,hwnd,NULL
+                        ,NULL,NULL
+                        );
+if(strcmp(cno,rsname)==0){
+        y = y+40;
+
+   hUnderNameNo = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        x,y,150,40,hwnd,
+                   NULL,NULL,NULL );
+
+
+                     SetWindowText(hUnderNameNo,rscustomer_no);
+x = x+150;
+
+  hUnderNameName = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameName,rsname);
+x = x+150;
+  hUnderNameCaste = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameCaste,rscaste);
+x = x+150;
+
+hUnderNameBirthdate = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameBirthdate,rsbirthdate);
+x = x+150;
+ hUnderNameMoney = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameMoney,rsmoney);
+ x = x+150;
+ hUnderNameLast = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        x,y,150,40,hwnd,NULL
+                        ,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameLast,rslast_transaction);
+                        x = 340;
+                        destroy_everything();
+
+
+    found = false;
+
+}
+else{
+    found = true;
+}
+}
+if(found == false){
+   MessageBox(hwnd,"Record not found","Found",MB_ABORTRETRYIGNORE);
+}
+
+
+
+};
+void go_caste(HWND hwnd){
+bool found = false;
+int x = 340,y = 150;
+    fstream newfile;
+char rscustomer_no[5],rsname[20],rscaste[20],rsbirthdate[12],rsmoney[15],rslast_transaction[10];
+newfile.open("customer.txt");
+     while(!newfile.eof()){
+                         newfile >> rscustomer_no >> rsname >> rscaste >>rsbirthdate >> rsmoney >>rslast_transaction;
+
+GetWindowText(hUnderCaste,cno,20);
+ CreateWindowW(L"STATIC",L"Customer No",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        340,150,150,40,hwnd,
+                        NULL,NULL,NULL );
+ CreateWindowW(L"STATIC",L"Name",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        490,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+   CreateWindowW(L"STATIC",L"Caste",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        640,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+  CreateWindowW(L"STATIC",L"Birthdate",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        790,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+   CreateWindowW(L"STATIC",L"Money",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        940,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+  CreateWindowW(L"STATIC",L"Last Transaction",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        1090,150,150,40,hwnd,NULL
+                        ,NULL,NULL
+                        );
+if(strcmp(cno,rscaste)==0){
+        y = y+40;
+
+   hUnderNameNo = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        x,y,150,40,hwnd,
+                   NULL,NULL,NULL );
+
+
+                     SetWindowText(hUnderNameNo,rscustomer_no);
+x = x+150;
+
+  hUnderNameName = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameName,rsname);
+x = x+150;
+  hUnderNameCaste = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameCaste,rscaste);
+x = x+150;
+
+hUnderNameBirthdate = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameBirthdate,rsbirthdate);
+x = x+150;
+ hUnderNameMoney = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameMoney,rsmoney);
+ x = x+150;
+ hUnderNameLast = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        x,y,150,40,hwnd,NULL
+                        ,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameLast,rslast_transaction);
+                        x = 340;
+                        destroy_everything();
+
+
+    found = false;
+
+}
+else{
+    found = true;
+}
+}
+if(found == false){
+   MessageBox(hwnd,"Record not found","Found",MB_ABORTRETRYIGNORE);
+}
+
+
+
+
+}
+void go_age(HWND hwnd){
+    char another[4]={0};
+bool found = false;
+int x = 340,y = 150;
+    fstream newfile;
+char rscustomer_no[5],rsname[20],rscaste[20],rsbirthdate[12],rsmoney[15],rslast_transaction[10];
+newfile.open("customer.txt");
+     while(!newfile.eof()){
+                         newfile >> rscustomer_no >> rsname >> rscaste >>rsbirthdate >> rsmoney >>rslast_transaction;
+                         for(int i = 0;i< 4;i++ ){
+                            another[i] = rsbirthdate[i];
+                         };
+
+
+
+GetWindowText(hUnderAge,cno,20);
+
+ CreateWindowW(L"STATIC",L"Customer No",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        340,150,150,40,hwnd,
+                        NULL,NULL,NULL );
+ CreateWindowW(L"STATIC",L"Name",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        490,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+   CreateWindowW(L"STATIC",L"Caste",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        640,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+  CreateWindowW(L"STATIC",L"Birthdate",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        790,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+   CreateWindowW(L"STATIC",L"Money",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        940,150,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+  CreateWindowW(L"STATIC",L"Last Transaction",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        1090,150,150,40,hwnd,NULL
+                        ,NULL,NULL
+                        );
+
+
+if(strcmp(another,cno)==0){
+        y = y+40;
+
+   hUnderNameNo = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        x,y,150,40,hwnd,
+                   NULL,NULL,NULL );
+
+
+                     SetWindowText(hUnderNameNo,rscustomer_no);
+x = x+150;
+
+  hUnderNameName = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameName,rsname);
+x = x+150;
+  hUnderNameCaste = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameCaste,rscaste);
+x = x+150;
+
+hUnderNameBirthdate = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameBirthdate,rsbirthdate);
+x = x+150;
+ hUnderNameMoney = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE| SS_CENTER ,
+                        x,y,150,40,hwnd,
+                        NULL,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameMoney,rsmoney);
+ x = x+150;
+ hUnderNameLast = CreateWindowW(L"EDIT",L"",WS_CHILD | WS_VISIBLE | SS_CENTER ,
+                        x,y,150,40,hwnd,NULL
+                        ,NULL,NULL
+                        );
+                        SetWindowText(hUnderNameLast,rslast_transaction);
+                        x = 340;
+                        destroy_everything();
+
+
+}
+
+}
+newfile.close();
+
+}
+
+
+
+
+
+
 
 void destroy_everything(){
+
 DestroyWindow(hName);
 DestroyWindow(hCaste);
 DestroyWindow(hCustomer);
@@ -514,6 +959,16 @@ DestroyWindow(hCustomers);
 DestroyWindow(hTransactions);
 DestroyWindow(hBirthdates);
 DestroyWindow(hMoneys);
+DestroyWindow(hcheckboxage);
+DestroyWindow(hcheckboxcaste);
+DestroyWindow(hcheckboxcustomer);
+DestroyWindow(hcheckboxname);
 
+}
+void destroy_checkbox(){
+DestroyWindow(hcheckboxage);
+DestroyWindow(hcheckboxcaste);
+DestroyWindow(hcheckboxcustomer);
+DestroyWindow(hcheckboxname);
 }
 
